@@ -170,26 +170,24 @@ public class MainActivity extends Activity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.enable_visiblity) {
-            webagBlueToothController.enableVisibly(this);
-        }
-        else if( id == R.id.find_device) {
-            //查找设备
-            webagDeviceAdapter.refresh(webagDeviceList);
-            webagBlueToothController.findDevice();
-            webagListView.setOnItemClickListener(bindDeviceClick);
-        }
-        else if (id == R.id.bonded_device) {
+        if (id == R.id.bonded_device) {
             //查看已绑定设备
             webagBondedDeviceList = webagBlueToothController.getBondedDevicelist();
             webagDeviceAdapter.refresh(webagBondedDeviceList);
             webagListView.setOnItemClickListener(bindedDeviceClick);
+        } /*else if (id == R.id.enable_visiblity) {
+            webagBlueToothController.enableVisibly(this);
         } else if( id == R.id.listening) {
             if( webagAcceptThread != null) {
                 webagAcceptThread.cancel();
             }
             webagAcceptThread = new AcceptThread(webagBlueToothController.getAdapter(), mUIHandler);
             webagAcceptThread.start();
+        } else if( id == R.id.find_device) {
+            //查找设备
+            webagDeviceAdapter.refresh(webagDeviceList);
+            webagBlueToothController.findDevice();
+            webagListView.setOnItemClickListener(bindDeviceClick);
         }
         else if( id == R.id.stop_listening) {
             if( webagAcceptThread != null) {
@@ -206,7 +204,7 @@ public class MainActivity extends Activity {
         }
         else if( id == R.id.say_hi) {
             say("Hi");
-        }
+        }*/
         return super.onOptionsItemSelected(item);
     }
 
@@ -304,23 +302,6 @@ public class MainActivity extends Activity {
         }
         webagToast.show();
     }
-
-   /* @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.enable_visiblity) {
-            webagBlueToothController.enableVisibly(this);
-        } else if (id == R.id.find_device) {
-            webagDeviceAdapter.refresh(webagDeviceList);
-            webagBlueToothController.findDevice();
-            webagListView.setOnItemClickListener(bindDeviceClick);
-        } else if (id == R.id.bonded_device) {
-            webagBondedDeviceList = webagBlueToothController.getBondedDevicelist();
-            webagDeviceAdapter.refresh(webagDeviceList);
-            webagListView.onOptionsItemSelected(item);
-        }
-        return super.onOptionsItemSelected(item);
-    }*/
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
