@@ -44,7 +44,6 @@ public class ConnectedThread extends Thread {
         while (true) {
             try {
                 Thread.sleep(100);
-                Log.d("GOTMSG", "========================ConnecteddddddddddThread==========================");
                 // Read from the InputStream
                 bytes = webagInStream.read(buffer);
                 // Send the obtained bytes to the UI activity

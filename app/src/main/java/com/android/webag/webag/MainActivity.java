@@ -164,47 +164,14 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.bonded_device) {
             //查看已绑定设备
             webagBondedDeviceList = webagBlueToothController.getBondedDevicelist();
             webagDeviceAdapter.refresh(webagBondedDeviceList);
             webagListView.setOnItemClickListener(bindedDeviceClick);
-        } /*else if (id == R.id.enable_visiblity) {
-            webagBlueToothController.enableVisibly(this);
-        } else if( id == R.id.listening) {
-            if( webagAcceptThread != null) {
-                webagAcceptThread.cancel();
-            }
-            webagAcceptThread = new AcceptThread(webagBlueToothController.getAdapter(), mUIHandler);
-            webagAcceptThread.start();
-        } else if( id == R.id.find_device) {
-            //查找设备
-            webagDeviceAdapter.refresh(webagDeviceList);
-            webagBlueToothController.findDevice();
-            webagListView.setOnItemClickListener(bindDeviceClick);
         }
-        else if( id == R.id.stop_listening) {
-            if( webagAcceptThread != null) {
-                webagAcceptThread.cancel();
-            }
-        }
-        else if( id == R.id.disconnect) {
-            if( webagConnectThread != null) {
-                webagConnectThread.cancel();
-            }
-        }
-        else if( id == R.id.say_hello) {
-            say("Hello");
-        }
-        else if( id == R.id.say_hi) {
-            say("Hi");
-        }*/
         return super.onOptionsItemSelected(item);
     }
 
