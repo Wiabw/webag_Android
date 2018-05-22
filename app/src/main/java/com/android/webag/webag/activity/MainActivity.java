@@ -1,4 +1,4 @@
-package com.android.webag.webag;
+package com.android.webag.webag.activity;
 
 import android.annotation.TargetApi;
 import android.app.ActionBar;
@@ -20,25 +20,39 @@ import android.view.ViewConfiguration;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
+import com.android.webag.webag.DeviceAdapter;
+import com.android.webag.webag.R;
+import com.android.webag.webag.WebagBlueToothController;
 import com.android.webag.webag.connect.AcceptThread;
 import com.android.webag.webag.connect.ConnectThread;
 import com.android.webag.webag.connect.Constant;
+import com.android.webag.webag.fragment.BlueFragment;
+
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
+import org.xutils.x;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends Activity {
+@ContentView(R.layout.activity_main)
+public class MainActivity extends BaseActivity {
 
     private WebagBlueToothController webagBlueToothController = new WebagBlueToothController();
     private static final int REQUEST_CODE = 0;
     private List<BluetoothDevice> webagDeviceList = new ArrayList<>();
     private List<BluetoothDevice> webagBondedDeviceList = new ArrayList<>();
     private Toast webagToast;
+    @ViewInject(R.id.device_list)
     private ListView webagListView;
+    @ViewInject(R.id.rb_lianjian)
+    private RadioButton webag_rb_lianjian;
     private DeviceAdapter webagDeviceAdapter;
     private AcceptThread webagAcceptThread;
     private ConnectThread webagConnectThread;
@@ -71,7 +85,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         initActionBar();
-        setContentView(R.layout.activity_main);
+        x.view().inject(this);
         initUI();
 
         registerBluetoothReceiver();
@@ -105,9 +119,9 @@ public class MainActivity extends Activity {
                 // 初始化数据列表
                 webagDeviceList.clear();
                 webagDeviceAdapter.notifyDataSetChanged();
-            } else if( BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 setProgressBarIndeterminateVisibility(false);
-            } else if ( BluetoothDevice.ACTION_FOUND.equals(action)) {
+            } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 //找到一个，添加一个
                 webagDeviceList.add(device);
@@ -125,7 +139,7 @@ public class MainActivity extends Activity {
                     showToast("no device");
                     return;
                 }
-                int status = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE,0);
+                int status = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, 0);
                 if (status == BluetoothDevice.BOND_BONDED) {
                     showToast("Bonded " + remoteDevice.getName());
                 } else if (status == BluetoothDevice.BOND_BONDING) {
@@ -138,53 +152,66 @@ public class MainActivity extends Activity {
     };
 
     private void initUI() {
-        webagListView = (ListView) findViewById(R.id.device_list);
         webagDeviceAdapter = new DeviceAdapter(webagDeviceList, this);
         webagListView.setAdapter(webagDeviceAdapter);
         webagListView.setOnItemClickListener(bindDeviceClick);
     }
 
+    @Event(value = {R.id.rb_lianjian, R.id.rb_saoma})
+    private void getEvent(View view) {
+        switch (view.getId()) {
+            case R.id.rb_lianjian:
+                goBack();
+                //查看已绑定设备
+                webagBondedDeviceList = webagBlueToothController.getBondedDevicelist();
+                webagDeviceAdapter.refresh(webagBondedDeviceList);
+                webagListView.setOnItemClickListener(bindedDeviceClick);
+                break;
+                case R.id.rb_saoma:
+               changeFragment(R.id.id_content,new BlueFragment());
+                break;
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if( webagAcceptThread != null) {
+        if (webagAcceptThread != null) {
             webagAcceptThread.cancel();
         }
-        if( webagConnectThread != null) {
+        if (webagConnectThread != null) {
             webagConnectThread.cancel();
         }
         unregisterReceiver(webagReceiver);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.bonded_device) {
-            //查看已绑定设备
-            webagBondedDeviceList = webagBlueToothController.getBondedDevicelist();
-            webagDeviceAdapter.refresh(webagBondedDeviceList);
-            webagListView.setOnItemClickListener(bindedDeviceClick);
-        }
-        return super.onOptionsItemSelected(item);
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.menu_main, menu);
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        int id = item.getItemId();
+//
+//        if (id == R.id.bonded_device) {
+//            //查看已绑定设备
+//            webagBondedDeviceList = webagBlueToothController.getBondedDevicelist();
+//            webagDeviceAdapter.refresh(webagBondedDeviceList);
+//            webagListView.setOnItemClickListener(bindedDeviceClick);
+//        }
+//        return super.onOptionsItemSelected(item);
+//    }
 
     private void say(String word) {
-        if( webagAcceptThread != null) {
+        if (webagAcceptThread != null) {
             try {
                 webagAcceptThread.sendData(word.getBytes("utf-8"));
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
-        }
-
-        else if( webagConnectThread != null) {
+        } else if (webagConnectThread != null) {
             try {
                 webagConnectThread.sendData(word.getBytes("utf-8"));
             } catch (UnsupportedEncodingException e) {
@@ -198,7 +225,7 @@ public class MainActivity extends Activity {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
             BluetoothDevice device = webagBondedDeviceList.get(i);
-            if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 device.createBond();
             }
         }
@@ -208,7 +235,7 @@ public class MainActivity extends Activity {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
             BluetoothDevice device = webagBondedDeviceList.get(i);
-            if( webagConnectThread != null) {
+            if (webagConnectThread != null) {
                 webagConnectThread.cancel();
             }
             webagConnectThread = new ConnectThread(device, webagBlueToothController.getAdapter(), mUIHandler);
@@ -246,10 +273,10 @@ public class MainActivity extends Activity {
                     setProgressBarIndeterminateVisibility(false);
                     break;
                 case Constant.MSG_GOT_DATA:
-                    showToast("data: "+String.valueOf(msg.obj));
+                    showToast("data: " + String.valueOf(msg.obj));
                     break;
                 case Constant.MSG_ERROR:
-                    showToast("error: "+String.valueOf(msg.obj));
+                    showToast("error: " + String.valueOf(msg.obj));
                     break;
                 case Constant.MSG_CONNECTED_TO_SERVER:
                     showToast("Connected to Server");
@@ -261,8 +288,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void showToast(String text){
-        if( webagToast == null ) {
+    private void showToast(String text) {
+        if (webagToast == null) {
             webagToast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
         } else {
             webagToast.setText(text);
@@ -273,7 +300,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if ( resultCode == RESULT_OK ) {
+        if (resultCode == RESULT_OK) {
             showToast("打开成功");
         } else {
             showToast("打开失败");
@@ -282,15 +309,18 @@ public class MainActivity extends Activity {
 
     public void isSupportBlueTooth(View view) {
         boolean ret = webagBlueToothController.isSupportBlueTooth();
-        showToast("support BlueTooth? " + ret) ;
+        showToast("support BlueTooth? " + ret);
     }
+
     public void isBlueToothEnable(View view) {
         boolean ret = webagBlueToothController.getBlueToothStatus();
-        showToast("BlueTooth Enable? " + ret) ;
+        showToast("BlueTooth Enable? " + ret);
     }
+
     public void requestTrunOnBlueTooth(View view) {
         webagBlueToothController.trunOnBlueTooth(this, REQUEST_CODE);
     }
+
     public void rewuestTurnOffBlueTooth(View view) {
         webagBlueToothController.trunOffBlueTooth();
     }
